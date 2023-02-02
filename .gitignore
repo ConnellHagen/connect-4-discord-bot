@@ -1,2 +1,5 @@
 botinfo.txt
 logo.png
+
+__pycache__/
+*.py[cod]
