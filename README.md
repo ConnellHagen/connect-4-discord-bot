@@ -1,2 +1,2 @@
-# connect-4-discord-bot
+# Connect 4 Bot
  
