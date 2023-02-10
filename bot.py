@@ -1,7 +1,9 @@
 import discord
 import responses
+import connect4
 
-TOKEN = 
+# insert token here
+TOKEN = ""
 
 intents = discord.Intents.default()
 intents.message_content= True
