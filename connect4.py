@@ -6,10 +6,15 @@ class GamePiece(Enum):
     Yellow = 1
     Red = 2
 
+class PlayerColor(Enum):
+    Yellow = 0
+    Red = 1
+
 class Connect4Game:
     def __init__(self, player1, player2):
         self.player1 = player1
         self.player2 = player2
+        self.turn = random.choice(list(PlayerColor)) # Chooses a random starting player
         self.gameboard = [[GamePiece.NoPiece for w in range(7)] for h in range(6)]
 
     def to_grid(self):
@@ -27,30 +32,27 @@ class Connect4Game:
 
         return string_of_grid
 
-class GameHandler:
-    def __init__(self):
-        # holds game IDs as keys, and `Connect4Game` objects as values
-        self.game_list = {}
-        self.id_list = []
+    async def send_game_message(self, channel):
+        message_content = ""
+        if(self.turn == PlayerColor.Red):
+            message_content += f":red_circle: Red: {self.player1.mention}\n:white_circle: Yellow: {self.player2.mention}\n"
+        else:
+            message_content += f":white_circle: Red: @{self.player1.mention}\n:yellow_circle: Yellow: @{self.player2.mention}\n"
+        message_content += self.to_grid();
 
-    async def handle_challenge(self, player1, player2):
-        self.id_list.append(self.add_game(player1, player2))
-    
-    def add_game(self, player1, player2):
-        id = generate_id()
-        self.game_list[id] = Connect4Game(player1, player2)
+        message = await channel.send(message_content)
+        id = message.id
         return id
 
-    def retrieve_game(self, id):
-        return self.game_list.get(id, None)
+class GameHandler:
+    def __init__(self):
+        self.id_game_dict = {}
 
-    def get_id_list(self):
-        return self.id_list
-
-
-VALUES = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
-def generate_id():
-    id = ""
-    for i in range(20):
-        id += VALUES[random.randint(0, 61)]
-    return id
+    async def handle_challenge(self, player1, player2, channel):
+        # send message about initiating new game
+        await self.add_game(player1, player2, channel)
+    
+    async def add_game(self, player1, player2, channel):
+        new_game = Connect4Game(player1, player2)
+        message_id = await new_game.send_game_message(channel);
+        self.id_game_dict[message_id] = new_game

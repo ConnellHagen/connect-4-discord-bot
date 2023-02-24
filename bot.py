@@ -1,6 +1,5 @@
 import discord
 import responses
-import connect4
 
 # insert token here
 TOKEN = ""
@@ -24,6 +23,8 @@ async def on_message(message):
 
 @client.event
 async def on_reaction_add(reaction, user):
-    pass
+    if user == client.user:
+        return
+    await responses.handle_reaction(reaction, user)
 
 client.run(TOKEN)

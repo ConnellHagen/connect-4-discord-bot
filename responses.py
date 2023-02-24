@@ -29,8 +29,7 @@ async def handle_message(message):
             bot_message = "You must mention one user to start a challenge."
         else:
             challenged_user = mentions[0]
-            await game_handler.handle_challenge(message.author, challenged_user)
-            bot_message = "you asked for a challenge?"
+            await game_handler.handle_challenge(message.author, challenged_user, message.channel)
 
     elif command == "!record":
         bot_message = "you asked for your record?"
@@ -43,4 +42,8 @@ async def handle_message(message):
         id = game_handler.get_id_list()[0]
         bot_message = game_handler.game_list.get(id).to_grid()
 
-    await message.channel.send(bot_message)
+    if bot_message != "no message":
+        await message.channel.send(bot_message)
+
+async def handle_reaction(reaction, user):
+    pass
