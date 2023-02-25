@@ -37,13 +37,8 @@ async def handle_message(message):
     elif command == "!reset":
         bot_message = "you chickened out of your ongoing games"
 
-    # for testing purposes
-    elif command == "!print":
-        id = game_handler.get_id_list()[0]
-        bot_message = game_handler.game_list.get(id).to_grid()
-
     if bot_message != "no message":
         await message.channel.send(bot_message)
 
 async def handle_reaction(reaction, user):
-    pass
+    await game_handler.handle_reaction(reaction, user)
