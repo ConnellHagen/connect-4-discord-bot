@@ -30,9 +30,9 @@ class Connect4Game:
                 if self.gameboard[h][w] == GamePiece.NoPiece:
                     string_of_grid += ":white_large_square:"
                 elif self.gameboard[h][w] == GamePiece.Yellow:
-                    string_of_grid += ":yellow_circle:"
+                    string_of_grid += ":yellow_square:"
                 elif self.gameboard[h][w] == GamePiece.Red:
-                    string_of_grid += ":red_circle:"
+                    string_of_grid += ":red_square:"
             string_of_grid += ":black_large_square:\n"
         string_of_grid += ":black_large_square:" * 9
 
@@ -48,7 +48,39 @@ class Connect4Game:
 
         message = await channel.send(message_content)
         id = message.id
+
+        emojis = ["{}\ufe0f\u20e3".format(num) for num in range(1, 8)]
+        for emoji in emojis:
+            await message.add_reaction(emoji)
+
         return id
+    
+    async def send_win_message(self, channel):
+        pass
+    
+    def is_legal_move(self, column):
+        return self.gameboard[0][column] == GamePiece.NoPiece
+    
+    def make_move(self, column):
+        for i in range(0, 6)[::-1]:
+            if(self.gameboard[i][column] == GamePiece.NoPiece):
+                self.gameboard[i][column] = self.turn_to_piece()
+                break
+
+    def switch_turns(self):
+        if self.turn != PlayerColor.Red:
+            self.turn = PlayerColor.Red
+        else:
+            self.turn = PlayerColor.Yellow
+
+    def test_for_win(self):
+        return False
+
+    def turn_to_piece(self):
+        if(self.turn == PlayerColor.Yellow):
+            return GamePiece.Yellow
+        else:
+            return GamePiece.Red
     
     def get_turn(self):
         return self.turn
@@ -82,15 +114,53 @@ class GameHandler:
             else:
                 player_turn = reacted_game.get_player2()
 
-            if player_turn == user:
-                print("take action!!")
-                # Note to self: insert code here for transferring the emoji to action in the game being taken
             # if the person reacting to a game is not the person who is taking a turn, the reaction is removed
-            else:
+            if player_turn != user:
                 await reaction.message.remove_reaction(reaction.emoji, user)
+                return 
+            
+            emoji = str(reaction.emoji)
+            number_selected = 0
 
-        # Exception is thrown when a message not containing a game is reacted to
-        # Nothing will happen since the reaction must have been added to a non-game message
+            if(emoji == "1\ufe0f\u20e3"):
+                number_selected = 1
+            elif(emoji == "2\ufe0f\u20e3"):
+                number_selected = 2
+            elif(emoji == "3\ufe0f\u20e3"):
+                number_selected = 3
+            elif(emoji == "4\ufe0f\u20e3"):
+                number_selected = 4
+            elif(emoji == "5\ufe0f\u20e3"):
+                number_selected = 5
+            elif(emoji == "6\ufe0f\u20e3"):
+                number_selected = 6
+            elif(emoji == "7\ufe0f\u20e3"):
+                number_selected = 7
+            else: # undo reaction if the reaction is not one of the 7 valid commands
+                await reaction.message.remove_reaction(reaction.emoji, user)
+                return
+        
+            # undo reaction if the move made is illegal
+            if(not reacted_game.is_legal_move(number_selected - 1)):
+                await reaction.message.remove_reaction(reaction.emoji, user)
+                return
+                        
+
+            del self.id_game_dict[reaction.message.id]
+            await reaction.message.delete()
+            reacted_game.make_move(number_selected - 1)
+
+            # if the game has been won by the move, then this will end the game
+            if(reacted_game.test_for_win()):
+                reacted_game.send_win_message()
+                return
+                        
+            reacted_game.switch_turns()
+            message_id = await reacted_game.send_game_message(reaction.message.channel)
+            self.id_game_dict[message_id] = reacted_game
+                
+
+        # exception is thrown when a message not containing a game is reacted to
+        # nothing will happen since the reaction must have been added to a non-game message
         except Exception as excep:
             pass
-                
