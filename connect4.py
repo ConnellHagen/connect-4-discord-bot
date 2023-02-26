@@ -17,6 +17,10 @@ class Connect4Game:
         self.turn = random.choice(list(PlayerColor)) # Chooses a random starting player
         self.gameboard = [[GamePiece.NoPiece for w in range(7)] for h in range(6)]
 
+        self.empty_squares = 28
+        self.last_move = (0, 0)
+        self.winner = None
+
     def to_grid(self):
         string_of_grid = "";
         string_of_grid += ":black_large_square:" * 9
@@ -55,8 +59,18 @@ class Connect4Game:
 
         return id
     
-    async def send_win_message(self, channel):
-        pass
+    async def send_gameend_message(self, channel):
+        message_content = ""
+        message_content += f":red_circle: {self.player1.mention} vs. :yellow_circle: {self.player2.mention}\n"
+        if(self.winner == PlayerColor.Red):
+            message_content += f"WINNER: :crown:{self.player1.mention}:crown:\n"
+        elif(self.winner == PlayerColor.Yellow):
+            message_content += f"WINNER: :crown:{self.player2.mention}:crown:\n"
+        else:
+            message_content += f":tada:Draw:tada:\n"
+        message_content += self.to_grid()
+
+        await channel.send(message_content)
     
     def is_legal_move(self, column):
         return self.gameboard[0][column] == GamePiece.NoPiece
@@ -65,6 +79,8 @@ class Connect4Game:
         for i in range(0, 6)[::-1]:
             if(self.gameboard[i][column] == GamePiece.NoPiece):
                 self.gameboard[i][column] = self.turn_to_piece()
+                self.last_move = (i, column)
+                self.empty_squares -= 1
                 break
 
     def switch_turns(self):
@@ -72,11 +88,72 @@ class Connect4Game:
             self.turn = PlayerColor.Red
         else:
             self.turn = PlayerColor.Yellow
-
+    
+    def is_game_over(self):
+        return self.test_for_win()
+        
     def test_for_win(self):
-        return False
+        # setting the bounds for the possible connect-4s made by the last move
+        left_most = self.last_move[1] - 3 if self.last_move[1] - 3 >= 0 else 0
+        right_most = self.last_move[1] + 3 if self.last_move[1] + 3 <= 6 else 6
+        top_most = self.last_move[0] - 3 if self.last_move[0] - 3 >= 0 else 0
+        bottom_most = self.last_move[0] + 3 if self.last_move[0] + 3 <= 5 else 5
 
-    def turn_to_piece(self):
+        print(left_most, right_most, top_most, bottom_most, "\n")
+
+        # testing possible horizontal connect 4s
+        consecutive = 0
+        for i in range(left_most, right_most + 1):
+            if(self.gameboard[self.last_move[0]][i] == self.turn_to_piece()):
+                consecutive += 1
+                if(consecutive >= 4):
+                    self.winner = self.turn
+                    return True
+            else:
+                consecutive = 0
+
+        #testing possible vertical connect 4s
+        consecutive = 0
+        for i in range(top_most, bottom_most + 1):
+            if(self.gameboard[i][self.last_move[1]] == self.turn_to_piece()):
+                consecutive += 1
+                if(consecutive >= 4):
+                    self.winner = self.turn
+                    return True
+            else:
+                consecutive = 0
+
+        # #testing possible upwards sloping diagonal connect 4s
+        consecutive = 0
+        for i in range(max(left_most - self.last_move[1], self.last_move[0] - bottom_most), # shortest (negative) distance from edge
+                       min(right_most - self.last_move[1], self.last_move[0] - top_most) + 1): # shortest (positive) distance from edge
+            if(self.gameboard[self.last_move[0] - i][self.last_move[1] + i] == self.turn_to_piece()):
+                consecutive += 1
+                if(consecutive >= 4):
+                    self.winner = self.turn
+                    return True
+            else:
+                consecutive = 0
+                
+        # testing possible downwards sloping diagonal connect 4s
+        consecutive = 0
+        for i in range(max(left_most - self.last_move[1], top_most - self.last_move[0]), # shortest (negative) distance from edge
+                       min(right_most - self.last_move[1], bottom_most - self.last_move[0]) + 1): # shortest (positive) distance from edge
+            if(self.gameboard[self.last_move[0] + i][self.last_move[1] + i] == self.turn_to_piece()):
+                consecutive += 1
+                if(consecutive >= 4):
+                    self.winner = self.turn
+                    return True
+            else:
+                consecutive = 0
+
+        # draw
+        if(self.empty_squares == 0):
+            return True
+        else:
+            return False
+
+    def turn_to_piece(self): 
         if(self.turn == PlayerColor.Yellow):
             return GamePiece.Yellow
         else:
@@ -144,17 +221,16 @@ class GameHandler:
             if(not reacted_game.is_legal_move(number_selected - 1)):
                 await reaction.message.remove_reaction(reaction.emoji, user)
                 return
-                        
 
             del self.id_game_dict[reaction.message.id]
             await reaction.message.delete()
             reacted_game.make_move(number_selected - 1)
 
             # if the game has been won by the move, then this will end the game
-            if(reacted_game.test_for_win()):
-                reacted_game.send_win_message()
+            if(reacted_game.is_game_over()):
+                await reacted_game.send_gameend_message(reaction.message.channel)
                 return
-                        
+            
             reacted_game.switch_turns()
             message_id = await reacted_game.send_game_message(reaction.message.channel)
             self.id_game_dict[message_id] = reacted_game
@@ -163,4 +239,4 @@ class GameHandler:
         # exception is thrown when a message not containing a game is reacted to
         # nothing will happen since the reaction must have been added to a non-game message
         except Exception as excep:
-            pass
+            print(excep)
