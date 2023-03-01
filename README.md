@@ -1,4 +1,4 @@
-# Connect 4 Discord Bot
+# Connect 4 Bot
 
 ## About
 Connect 4 certainly is one of the games of all time. And now you can play it in your Discord server with your friends using this bot. 
