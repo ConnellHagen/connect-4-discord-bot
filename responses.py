@@ -18,10 +18,10 @@ async def handle_message(message):
     message_content = message_content[len(command):]
 
 
-    bot_message = "no message"
+    bot_message = ""
 
     if command == "!help":
-        bot_message = "you asked for help?"
+        bot_message = "Start a game of Connect 4 with \"!challenge @[player]\"!"
 
     elif command == "!challenge":
         mentions = message.mentions
@@ -31,13 +31,7 @@ async def handle_message(message):
             challenged_user = mentions[0]
             await game_handler.handle_challenge(message.author, challenged_user, message.channel)
 
-    elif command == "!record":
-        bot_message = "you asked for your record?"
-
-    elif command == "!reset":
-        bot_message = "you chickened out of your ongoing games"
-
-    if bot_message != "no message":
+    if bot_message != "":
         await message.channel.send(bot_message)
 
 async def handle_reaction(reaction, user):

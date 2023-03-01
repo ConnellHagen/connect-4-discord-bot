@@ -17,7 +17,7 @@ class Connect4Game:
         self.turn = random.choice(list(PlayerColor)) # Chooses a random starting player
         self.gameboard = [[GamePiece.NoPiece for w in range(7)] for h in range(6)]
 
-        self.empty_squares = 28
+        self.empty_squares = 42
         self.last_move = (0, 0)
         self.winner = None
 
@@ -47,7 +47,7 @@ class Connect4Game:
         if(self.turn == PlayerColor.Red):
             message_content += f":red_circle: Red: {self.player1.mention}\n:white_circle: Yellow: {self.player2.mention}\n"
         else:
-            message_content += f":white_circle: Red: @{self.player1.mention}\n:yellow_circle: Yellow: @{self.player2.mention}\n"
+            message_content += f":white_circle: Red: {self.player1.mention}\n:yellow_circle: Yellow: {self.player2.mention}\n"
         message_content += self.to_grid();
 
         message = await channel.send(message_content)
@@ -63,11 +63,11 @@ class Connect4Game:
         message_content = ""
         message_content += f":red_circle: {self.player1.mention} vs. :yellow_circle: {self.player2.mention}\n"
         if(self.winner == PlayerColor.Red):
-            message_content += f"WINNER: :crown:{self.player1.mention}:crown:\n"
+            message_content += f"WINNER: :crown: {self.player1.mention} :crown:\n"
         elif(self.winner == PlayerColor.Yellow):
-            message_content += f"WINNER: :crown:{self.player2.mention}:crown:\n"
+            message_content += f"WINNER: :crown: {self.player2.mention} :crown:\n"
         else:
-            message_content += f":tada:Draw:tada:\n"
+            message_content += f":tada: Draw :tada:\n"
         message_content += self.to_grid()
 
         await channel.send(message_content)
@@ -98,8 +98,6 @@ class Connect4Game:
         right_most = self.last_move[1] + 3 if self.last_move[1] + 3 <= 6 else 6
         top_most = self.last_move[0] - 3 if self.last_move[0] - 3 >= 0 else 0
         bottom_most = self.last_move[0] + 3 if self.last_move[0] + 3 <= 5 else 5
-
-        print(left_most, right_most, top_most, bottom_most, "\n")
 
         # testing possible horizontal connect 4s
         consecutive = 0
@@ -239,4 +237,4 @@ class GameHandler:
         # exception is thrown when a message not containing a game is reacted to
         # nothing will happen since the reaction must have been added to a non-game message
         except Exception as excep:
-            print(excep)
+            pass
