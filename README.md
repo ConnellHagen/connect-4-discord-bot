@@ -16,13 +16,14 @@ The rules are simple:
 
 ## Usage
 
-### Adding the official bot to your server (not recommended; going to be nearly always offline):
-
-Click the following link, Discord will walk you through hosting my official bot on your server: https://discord.com/api/oauth2/authorize?client_id=1069375140577677323&permissions=274878113856&scope=bot
-
 ### Hosting the bot yourself:
 
-Go to the Discord Developer Portal (https://discord.com/developers/applications) and create a new application. Create a bot, and copy its token. Paste the token into the `Token = ""` quotes in `bot.py`. Lastly, execute the code with `python3 bot.py`. If the token is correct, any server that the bot you created is a member of will now have a working connect 4 bot.
+Go to the Discord Developer Portal (https://discord.com/developers/applications) and create a new application. Create a bot, and copy its token. Paste the token into the `Token = ""` quotes in `bot.py`. Lastly, execute the code with `python3 bot.py`. If the token is correct, any server that the bot you created is a member of will now have a working connect 4 bot
+
+### Adding the official bot to your server (not recommended; going to be offline):
+
+Click the following link, Discord will walk you through hosting my official bot on your server: https://discord.com/api/oauth2/authorize?client_id=1069375140577677323&permissions=274878113856&scope=bot
+.
 
 ## Other Information
 To get a list of all commands the bot can use, say "!help" in the chat and it will respond with them.
